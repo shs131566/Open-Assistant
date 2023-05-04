@@ -78,6 +78,7 @@ class OasstErrorCode(IntEnum):
 
     # 3000-4000: external resources
     HUGGINGFACE_API_ERROR = 3001
+    OPENAI_API_ERROR = 3002
 
     # 4000-5000: user
     USER_NOT_SPECIFIED = 4000
