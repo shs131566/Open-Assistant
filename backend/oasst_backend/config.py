@@ -211,7 +211,7 @@ class Settings(BaseSettings):
     DUPLICATE_MESSAGE_FILTER_WINDOW_MINUTES: int = 120
 
     HUGGING_FACE_API_KEY: str = "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"
-    OPENAI_API_KEY: str = "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"
+    OPENAI_API_KEY: str = ""
     
     ROOT_TOKENS: List[str] = ["1234"]  # supply a string that can be parsed to a json list
 
