@@ -147,7 +147,7 @@ def ensure_tree_states():
         logger.exception("TreeManager.ensure_tree_states() failed.")
 
 @app.on_event("startup")
-#@repeat_every(seconds=1 * settings.LABEL_INITIAL_PROMPT_INTERVAL, wait_first=True)
+@repeat_every(seconds=1 * settings.LABEL_INITIAL_PROMPT_INTERVAL, wait_first=True)
 @managed_tx_function(auto_commit=CommitMode.COMMIT)
 def label_initial_prompt(session: Session) -> None:
     api_client = api_auth(settings.OFFICIAL_WEB_API_KEY, db=session)
@@ -207,7 +207,7 @@ def label_initial_prompt(session: Session) -> None:
             logger.exception(f"Failed to label prompt {message.id} by {e}")
         
 @app.on_event("startup")
-#@repeat_every(seconds=1 * settings.REPLY_PROMPT_INTERVAL, wait_first=True)
+@repeat_every(seconds=300 * settings.REPLY_PROMPT_INTERVAL, wait_first=True)
 @managed_tx_function(auto_commit=CommitMode.COMMIT)
 def assitant_reply(session: Session):
     api_client = api_auth(settings.OFFICIAL_WEB_API_KEY, db=session)
