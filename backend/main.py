@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
+from oasst_backend.utils.open_ai import OpenAIChatModel
 import alembic.command
 import alembic.config
 import fastapi
@@ -19,8 +20,9 @@ from oasst_backend.api.v1.utils import prepare_conversation
 from oasst_backend.cached_stats_repository import CachedStatsRepository
 from oasst_backend.config import settings
 from oasst_backend.database import engine
-from oasst_backend.models import MessageTreeState, message_tree_state
+from oasst_backend.models import Message, MessageTreeState, message_tree_state
 from oasst_backend.prompt_repository import PromptRepository, UserRepository
+from oasst_backend.scheduled_tasks import openai_gpt
 from oasst_backend.task_repository import TaskRepository, delete_expired_tasks
 from oasst_backend.tree_manager import TreeManager, halt_prompts_of_disabled_users
 from oasst_backend.user_stats_repository import UserStatsRepository, UserStatsTimeFrame
@@ -205,19 +207,34 @@ def label_initial_prompt(session: Session) -> None:
             logger.exception(f"Failed to label prompt {message.id} by {e}")
         
 @app.on_event("startup")
-@repeat_every(seconds=1 * settings.REPLY_PROMPT_INTERVAL, wait_first=True)
+#@repeat_every(seconds=1 * settings.REPLY_PROMPT_INTERVAL, wait_first=True)
 @managed_tx_function(auto_commit=CommitMode.COMMIT)
 def assitant_reply(session: Session):
     api_client = api_auth(settings.OFFICIAL_WEB_API_KEY, db=session)
-    gpt = protocol_schema.User(id="__GPT__", display_name="GPT", auth_method="local")
-    ur = UserRepository(db=session, api_client=api_client)
-    tr = TaskRepository(db=session, api_client=api_client, user_repository=ur, client_user=gpt)
-    pr = PromptRepository(db=session, api_client=api_client, user_repository=ur, task_repository=tr, client_user=gpt)
-    tm = TreeManager(db=session, prompt_repository=pr)
+    gpt = protocol_schema.User(id="__GPT3.5__", display_name="GPT", auth_method="local")
+ 
+    messages_need_replies = session.query(Message).filter(
+        Message.lang == "ko", 
+        Message.role == "prompter",
+    ).all()
     
-    messages_need_replies = tm.query_extendible_trees(lang="ko")
-    logger.info("messages_need_replies")
+    if messages_need_replies is None:
+        return
+    
+    for message in messages_need_replies[1:]:
+        openai_gpt.delay(
+            text=message.text,
+            message_id=message.id,
+            api_client=api_client.dict(),
+            user=gpt.dict(),
+            model=OpenAIChatModel.GPT_3_5_TURBO.value,
+        )
+            
+            
+            
     logger.info(f"found {messages_need_replies} messages need replies")
+    
+    #for message in me
     
 @app.on_event("startup")
 @repeat_every(seconds=60 * settings.USER_STATS_INTERVAL_DAY, wait_first=False)

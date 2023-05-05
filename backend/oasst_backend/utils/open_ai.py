@@ -16,15 +16,16 @@ class OpenAIChatModel(str, Enum):
 
 class OpenAIAPI:
 
-    def __init__(self, api_url: str):
+    def __init__(self, api_url: str, model: OpenAIChatModel = OpenAIChatModel.GPT_3_5_TURBO):
         self.api_url: str = api_url
         self.api_key: str = settings.OPENAI_API_KEY
         self.headers: Dict[str, str] = {"Authorization": f"Bearer {self.api_key}"}
+        self.model: OpenAIChatModel = model
 
     async def post(self, input: str, max_replies: str = 3) -> Any:
         async with aiohttp.ClientSession() as session:
             payload: Dict[str, str] = {
-                "model": "gpt-3.5-turbo",
+                "model": self.model,
                 "messages": [{"role": "user", "content": input}],
                 "n": max_replies,
             }
