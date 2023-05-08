@@ -34,13 +34,16 @@ class TreeManagerConfiguration(BaseModel):
     min_goal_tree_size: int = 5
     """Minimum tree size for random goal sizes."""
 
-    num_reviews_initial_prompt: int = 3
+    num_reviews_initial_prompt: int = 1
     """Number of peer review checks to collect in INITIAL_PROMPT_REVIEW state."""
 
     num_reviews_reply: int = 3
     """Number of peer review checks to collect per reply (other than initial_prompt)."""
-
-    auto_mod_enabled: bool = True
+    
+    num_assistant_replies: int = 3
+    """Number of assistant replies to collect per prompter reply."""
+    
+    auto_mod_enabled: bool = False
     """Flag to enable/disable auto moderation."""
 
     auto_mod_max_skip_reply: int = 25
@@ -207,8 +210,9 @@ class Settings(BaseSettings):
 
     DUPLICATE_MESSAGE_FILTER_WINDOW_MINUTES: int = 120
 
-    HUGGING_FACE_API_KEY: str = ""
-
+    HUGGING_FACE_API_KEY: str = "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"
+    OPENAI_API_KEY: str = ""
+    
     ROOT_TOKENS: List[str] = ["1234"]  # supply a string that can be parsed to a json list
 
     ENABLE_PROM_METRICS: bool = True  # enable prometheus metrics at /metrics
@@ -241,6 +245,9 @@ class Settings(BaseSettings):
 
     tree_manager: Optional[TreeManagerConfiguration] = TreeManagerConfiguration()
 
+    LABEL_INITIAL_PROMPT_INTERVAL: int = 1
+    REPLY_PROMPT_INTERVAL: int = 1
+    
     USER_STATS_INTERVAL_DAY: int = 5  # minutes
     USER_STATS_INTERVAL_WEEK: int = 15  # minutes
     USER_STATS_INTERVAL_MONTH: int = 60  # minutes
